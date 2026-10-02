@@ -31,7 +31,7 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                bat 'mvnw.cmd clean verify'
+                bat 'mvnw.cmd clean verify -Dspring.profiles.active=dev'
             }
         }
 
