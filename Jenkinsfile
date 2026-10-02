@@ -86,6 +86,7 @@ pipeline {
                         --name "%CONTAINER_NAME%" ^
                         --restart unless-stopped ^
                         -p "%APP_PORT%:8080" ^
+                        -e SPRING_PROFILES_ACTIVE=docker ^
                         "%FULL_IMAGE%"
                 '''
             }
