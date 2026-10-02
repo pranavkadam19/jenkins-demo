@@ -88,6 +88,8 @@ pipeline {
                         -p "%APP_PORT%:8080" ^
                         -e SPRING_PROFILES_ACTIVE=docker ^
                         "%FULL_IMAGE%"
+
+                    docker inspect "%CONTAINER_NAME%" --format "{{.Config.Env}}"
                 '''
             }
         }
