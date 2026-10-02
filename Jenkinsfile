@@ -97,9 +97,11 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 bat '''
-                    timeout /t 10 /nobreak
+                    powershell -Command "Start-Sleep -Seconds 10"
 
                     docker ps --filter "name=%CONTAINER_NAME%"
+
+                    docker inspect "%CONTAINER_NAME%" --format "{{.State.Status}}"
 
                     docker logs --tail 50 "%CONTAINER_NAME%"
                 '''
