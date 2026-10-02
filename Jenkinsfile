@@ -5,7 +5,7 @@ pipeline {
         DOCKERHUB_USER = 'pranav1119'
         IMAGE_NAME = 'spring-boot-app'
         CONTAINER_NAME = 'spring-boot-app'
-        APP_PORT = '8080'
+        APP_PORT = '8081'
     }
 
     options {
