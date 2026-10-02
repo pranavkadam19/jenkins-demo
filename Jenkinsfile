@@ -2,19 +2,23 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'pranav'
+        DOCKERHUB_USER = 'pranav1119'
         IMAGE_NAME = 'spring-boot-app'
         CONTAINER_NAME = 'spring-boot-app'
         APP_PORT = '8080'
     }
 
     options {
+        skipDefaultCheckout(true)
         timestamps()
         disableConcurrentBuilds()
-        buildDiscarder(logRotator(
-            numToKeepStr: '20',
-            artifactNumToKeepStr: '10'
-        ))
+
+        buildDiscarder(
+            logRotator(
+                numToKeepStr: '20',
+                artifactNumToKeepStr: '10'
+            )
+        )
     }
 
     stages {
@@ -27,8 +31,7 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'chmod +x mvnw'
-                sh './mvnw clean verify'
+                bat 'mvnw.cmd clean verify'
             }
         }
 
@@ -46,7 +49,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t "$FULL_IMAGE" .'
+                bat 'docker build -t "%FULL_IMAGE%" .'
             }
         }
 
@@ -59,10 +62,8 @@ pipeline {
                         passwordVariable: 'DOCKER_TOKEN'
                     )
                 ]) {
-                    sh '''
-                        echo "$DOCKER_TOKEN" |
-                        docker login -u "$DOCKER_USER" \
-                        --password-stdin
+                    bat '''
+                        echo %DOCKER_TOKEN% | docker login -u %DOCKER_USER% --password-stdin
                     '''
                 }
             }
@@ -70,32 +71,34 @@ pipeline {
 
         stage('Push Image') {
             steps {
-                sh 'docker push "$FULL_IMAGE"'
+                bat 'docker push "%FULL_IMAGE%"'
             }
         }
 
         stage('Deploy') {
             steps {
-                sh '''
-                    docker pull "$FULL_IMAGE"
+                bat '''
+                    docker pull "%FULL_IMAGE%"
 
-                    docker rm -f "$CONTAINER_NAME" || true
+                    docker rm -f "%CONTAINER_NAME%" 2>NUL
 
-                    docker run -d \
-                        --name "$CONTAINER_NAME" \
-                        --restart unless-stopped \
-                        -p "$APP_PORT:8080" \
-                        "$FULL_IMAGE"
+                    docker run -d ^
+                        --name "%CONTAINER_NAME%" ^
+                        --restart unless-stopped ^
+                        -p "%APP_PORT%:8080" ^
+                        "%FULL_IMAGE%"
                 '''
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                sh '''
-                    sleep 10
-                    docker ps --filter "name=$CONTAINER_NAME"
-                    docker logs --tail 50 "$CONTAINER_NAME"
+                bat '''
+                    timeout /t 10 /nobreak
+
+                    docker ps --filter "name=%CONTAINER_NAME%"
+
+                    docker logs --tail 50 "%CONTAINER_NAME%"
                 '''
             }
         }
@@ -111,7 +114,7 @@ pipeline {
         }
 
         always {
-            sh 'docker image prune -f || true'
+            bat 'docker image prune -f'
         }
     }
 }
